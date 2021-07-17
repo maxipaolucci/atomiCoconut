@@ -1,13 +1,40 @@
 # The other one in client folder is just for serving the frontend assets
 # This one one in the nginx folder is for routing between the client and the server
-FROM nginx
+FROM nginx:1.21.1 
+# lastest version tested
 
 RUN apt update && apt install -y telnet curl iputils-ping traceroute htop net-tools vim logrotate
 
 # this replacement is to allow nginx read the dummy certificate from letsencrypt
 RUN sed -i 's?CipherString = DEFAULT@SECLEVEL=2?CipherString = DEFAULT@SECLEVEL=1?g' /etc/ssl/openssl.cnf
 
+# directory to put old logs for rotation
+RUN mkdir -p /var/log/nginx/old
+RUN mkdir -p /var/log/nginx/logs-bkp
+
 COPY ./prod.conf /etc/nginx/conf.d/default.conf
+# this script is for startup of the container
+COPY startup.sh /
+
+# setup logrotate to allow ngnix log rotation based on file size
+RUN rm /etc/logrotate.d/nginx
+COPY ./logrotate.conf /etc/logrotate.d
+RUN mv /etc/logrotate.d/logrotate.conf /etc/logrotate.d/nginx
+RUN chmod 644 /etc/logrotate.d/nginx
+
+# add cronjob to run evey x minutes to check if a rotation is needed
+RUN echo "*/1 * * * * /usr/sbin/logrotate /etc/logrotate.d/nginx" >> mycron
+# install new cron file
+RUN crontab mycron
+# removed the created file
+RUN rm mycron
+
+# remove symlinks for logs
+RUN unlink /var/log/nginx/access.log && unlink /var/log/nginx/error.log
+
+VOLUME ["/var/log/nginx/logs-bkp"]
 
 EXPOSE 80
 EXPOSE 443
+
+CMD ["sh", "startup.sh"]
