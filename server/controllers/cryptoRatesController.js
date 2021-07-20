@@ -120,25 +120,25 @@ const alertCryptoRatio = async(fromCrypto, toCrypto) => {
 
     let fromCryptoData = null;
     let toCryptoData = null;
+    const fromEmail = 'alert@atomicoconut.com';
     
     // get user settings
     const user = await getUserObject(ADMIN_EMAIL, { userSetting: 'true' });
-    
     
     if (user && user.userSetting.ratioBtcXmrNotification) {
         try {
             fromCryptoData = await getTodayRatesFromWebservice(fromCrypto, ADMIN_EMAIL);
             toCryptoData = await getTodayRatesFromWebservice(toCrypto, ADMIN_EMAIL);
-            
+
             if (fromCryptoData && toCryptoData) {
                 const ratio = fromCryptoData.priceUsd / toCryptoData.priceUsd;
                 const alert = (ratio >= user.userSetting.ratioBtcXmrMax || ratio < user.userSetting.ratioBtcXmrMin ) ? '[URGENT]': '';
                 const toEmail = ADMIN_EMAIL;
                 
-                console.log(`${methodTrace} ${getMessage('message', 1054, ADMIN_EMAIL, true, 'Crypto ratio', toEmail)}`); 
+                console.log(`${methodTrace} ${getMessage('message', 1054, fromEmail, true, true, 'Crypto ratio', toEmail)}`); 
                 mail.send({
                     toEmail,
-                    fromEmail: 'alert@atomicoconut.com',
+                    fromEmail,
                     subject : `${alert} Ratio ${fromCrypto}/${toCrypto}: ${ratio}`,
                     ratio,
                     fromCrypto,
@@ -147,16 +147,16 @@ const alertCryptoRatio = async(fromCrypto, toCrypto) => {
                     toCrypto,
                     filename : 'alert-crypto-ratio' //this is going to be the mail template file
                 });
-                console.log(`${methodTrace} ${getMessage('message', 1055, ADMIN_EMAIL, true, toEmail)}`);
+                console.log(`${methodTrace} ${getMessage('message', 1055, fromEmail, true, true, toEmail)}`);
             } else {
-                throw new Error(getMessage('error', 478, ADMIN_EMAIL, true, 'Coincap Service API'))
+                throw new Error(getMessage('error', 478, fromEmail, true, true, 'Coincap Service API'))
             }
         } catch(err) {
-            console.log(`${methodTrace} ${getMessage('error', 481, ADMIN_EMAIL, true, fromCrypto, toCrypto)}`); 
+            console.log(`${methodTrace} ${getMessage('error', 481, fromEmail, true, true, fromCrypto, toCrypto)}`); 
             console.log(`${methodTrace} ${err.toString()}`);
         }
     } else {
-        console.log(`${methodTrace} ${getMessage('message', 1064, ADMIN_EMAIL, true, ADMIN_EMAIL)}`);
+        console.log(`${methodTrace} ${getMessage('message', 1064, fromEmail, true, true, ADMIN_EMAIL)}`);
     }
 };
 exports.alertCryptoRatio = alertCryptoRatio;

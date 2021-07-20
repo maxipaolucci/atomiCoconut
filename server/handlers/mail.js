@@ -82,10 +82,10 @@ exports.send = async(options) => {
   const fromEmail = options.fromEmail ? options.fromEmail : ANONYMOUS_USER;
 
   if (utils.isProduction()) {
-    console.log(`${methodTrace} ${getMessage('message', 1041, fromEmail, true, 'SendGrid')}`);
+    console.log(`${methodTrace} ${getMessage('message', 1041, fromEmail, true, true, 'SendGrid')}`);
     return sendSgMail(options);
   } else {
-    console.log(`${methodTrace} ${getMessage('message', 1041, fromEmail, true, 'Mailtrap')}`);
+    console.log(`${methodTrace} ${getMessage('message', 1041, fromEmail, true, true, 'Mailtrap')}`);
     return sendMtMail(options);
   }
 }
