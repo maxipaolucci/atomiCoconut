@@ -22,9 +22,11 @@ COPY ./logrotate.conf /etc/logrotate.d
 RUN mv /etc/logrotate.d/logrotate.conf /etc/logrotate.d/nginx
 RUN chmod 644 /etc/logrotate.d/nginx
 
-# add cronjob to run evey x minutes to check if a rotation is needed
-RUN echo "*/1 * * * * /usr/sbin/logrotate /etc/logrotate.d/nginx" >> mycron
-# install new cron file
+# add cronjob to run every 2 minutes to check if a rotation is needed (>50k)
+RUN echo "*/2 * * * * /usr/sbin/logrotate /etc/logrotate.d/nginx" >> mycron
+# add cronjob to run every 15 minutes to force a rotation if nothing exceeds the limit above
+RUN echo "*/15 * * * * /usr/sbin/logrotate -f /etc/logrotate.d/nginx" >> mycron
+# setup the crons
 RUN crontab mycron
 # removed the created file
 RUN rm mycron
