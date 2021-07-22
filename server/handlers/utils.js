@@ -1,8 +1,11 @@
 const Pusher = require("pusher");
 const { exec } = require('child_process');
 const { ENVIRONMENTS } = require("../constants/constants");
-const { getMessage } = require('./errorHandlers');
+const { getMessage, resetLoggerInstance } = require('./errorHandlers');
 const { ANONYMOUS_USER } = require('../constants/constants');
+const fs = require('fs');
+const path = require("path");
+const moment = require('moment');
 
 const errorTrace = 'utils >';
 
@@ -76,17 +79,68 @@ exports.getEnvironment = getEnvironment;
  * 
  * @return {Promise}
  */
-exports.runCommand = (command) => new Promise(res => exec(command, (error, stdout, stderr) => {
-  const methodTrace = `${errorTrace} runCommand() >`;
+const runCommand = (username, command, addToLogger = true) => new Promise((resolve, reject) => {
+  exec(command, (error, stdout, stderr) => {
+    
+    const methodTrace = `${errorTrace} runCommand() >`;
+    
+    if (error) {
+      console.log(`${methodTrace} ${getMessage('error', 433, username, true, addToLogger, command, error)}`)
+      reject(error);
+      return;
+    }
+    
+    if (stderr) {
+      console.log(`${methodTrace} ${getMessage('error', 432, username, true, addToLogger, command, stderr)}`)
+      reject(stderr);
+      return;
+    }
+
+    console.log(`${methodTrace} ${getMessage('message', 1065, username, true, addToLogger, command, stdout)}`);
+    resolve(true);
+  })
+});
+exports.runCommand = runCommand;
+
+// Does a manual log rotation of the app logs
+exports.rotateLogs = async(username, file) => {
+  const methodTrace = `${errorTrace} rotateLogs(${file}) >`;
+  try {
+    const statsObj = fs.statSync(file);
+    
+    if (statsObj.size == 0) {
+      // file is empty
+      console.log(`${methodTrace} ${getMessage('message', 1066, username, true, true, file)}`);
+      return;
+    }
   
-  if (error) {
-    console.log(`${methodTrace} ${getMessage('error', 433, ANONYMOUS_USER, true, true, command, error)}`);
+    // rotate the file
+    let newDate = moment(Date.now()).format('DD-MM-YYYY_HH-mm-ss-SSS');
+    let oldFilenameArr = file.split('/')[1].split('.');
+    let oldFileNameUnique = `${oldFilenameArr[0]}-${newDate}.${oldFilenameArr[1]}`;
+    console.log(`${methodTrace} ${getMessage('message', 1067, username, true, true, file, `logs-old/${oldFileNameUnique}`)}`);
+    // move oldFilename to a mounted dir to be able to be send to S3 by a cronjob
+    let result = await runCommand(username, `mv ${file} logs-old/${oldFileNameUnique}`, false);
+    // reset the logger to start again and create a new log file
+    if (result === true) {
+      resetLoggerInstance();
+    }
+  } catch (err) {
+    console.log(`${methodTrace} ${getMessage('error', 434, username, true, true, file, err)}`);
     return;
   }
-  
-  console.log(`${methodTrace} ${getMessage('message', 1065, ANONYMOUS_USER, true, true, command, stdout)}`);
-  
-  if (stderr) {
-    console.log(`${methodTrace} ${getMessage('error', 432, ANONYMOUS_USER, true, true, command, stderr)}`);
-  }
-}));
+};
+
+// retrieves the last file modified in the provided directory
+const getMostRecentFile = (dir) => {
+  const files = orderReccentFiles(dir);
+  return files.length ? files[0] : undefined;
+};
+exports.getMostRecentFile = getMostRecentFile;
+
+const orderReccentFiles = (dir) => {
+  return fs.readdirSync(dir)
+    .filter((file) => fs.lstatSync(path.join(dir, file)).isFile())
+    .map((file) => ({ file, mtime: fs.lstatSync(path.join(dir, file)).mtime }))
+    .sort((a, b) => b.mtime.getTime() - a.mtime.getTime());
+};

@@ -45,8 +45,7 @@ const app = require('./app');
 const cron = require("node-cron");
 const cryptoRatesController = require('./controllers/cryptoRatesController');
 const userController = require('./controllers/userController');
-const { CRYPTO_CURRENCIES } = require('./constants/constants');
-
+const { CRYPTO_CURRENCIES, CRONJOB_USER } = require('./constants/constants');
 
 // For cron job patterns look
 // https://www.ostechnix.com/a-beginners-guide-to-cron-jobs/
@@ -63,6 +62,15 @@ if (utils.isProduction()) {
 // this job runs every day at 8:00 am
 cron.schedule("0 8 * * *", () => {
   userController.deleteExpiredInactiveAccounts();
+});
+
+// this job runs every 15 minutes
+cron.schedule("*/15 * * * *", () => {
+  const lastLogFile = utils.getMostRecentFile('logs/');
+  
+  if (lastLogFile && lastLogFile.file) {
+    utils.rotateLogs(CRONJOB_USER, `logs/${lastLogFile.file}`);
+  }
 });
 
 app.set('port', process.env.PORT);

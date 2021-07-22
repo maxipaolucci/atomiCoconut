@@ -1,7 +1,7 @@
 const moment = require('moment');
 const winston = require('winston');
 require('winston-daily-rotate-file');
-const { ANONYMOUS_USER } = require('../constants/constants');
+const { ANONYMOUS_USER, WINSTON_LOGGER } = require('../constants/constants');
 const utils = require('./utils');
 
 const errorTrace = 'errorHandlers >';
@@ -42,7 +42,8 @@ const errorCodes = {
   480: 'JWT provided is invalid for {{param}}',
   481: 'Error trying to generate a crypto ratio alert for {{param}}/{{param}}',
   432: 'Command "{{param}}" execution failed. Output: {{param}}',
-  433: 'child_process.exec({{param}}) failed. Error: {{param}}'
+  433: 'child_process.exec({{param}}) failed. Error: {{param}}',
+  434: 'Error reading file {{param}}: {{param}}'
 };
 
 const messageCodes = {
@@ -111,19 +112,28 @@ const messageCodes = {
   1062: 'Client app API keys successfully retrieved.',
   1063: 'Alert Crypto Ratio triggered.',
   1064: 'Alert crypto ratio notification is off for {{param}}.',
-  1065: 'Command "{{param}}" executed successfully. Output: {{param}}'
+  1065: 'Command {{param}} executed successfully. Output: {{param}}',
+  1066: 'Log file {{param}} is empty. Not rotating it.',
+  1067: 'Moving log file {{param}} to {{param}}...'
 };
 
 // Get Logger instance. Using the logger variable we handle it as a singleton.
 let logger = null;
+
+// clean current logger instance and create a new one. Needed for manual/cron log rotation
+exports.resetLoggerInstance = () => {
+  logger.clear();
+  logger = null;
+  getLoggerInstance();
+};
+
+// configures and create a logger
 const getLoggerInstance = () => {
   const methodTrace = `getLoggerInstance() >`;
-
-  if (!logger) {
+  
+  if (!logger) {  
     let transport = new winston.transports.DailyRotateFile({
       filename: `acserver-${utils.getEnvironment()}.log`,
-      // filename: `acserver-%DATE%.log`,
-      // datePattern: 'YYYY-MM-DD-HH-',
       dirname: 'logs',
       maxSize: process.env.LOG_SIZE
     });
@@ -133,41 +143,15 @@ const getLoggerInstance = () => {
       let oldFilenameArr = oldFilename.split('/')[1].split('.');
       let oldFileNameUnique = `${oldFilenameArr[0]}-${newDate}.${oldFilenameArr[1]}`; 
       // move oldFilename to a mounted dir to be able to be send to S3 by a cronjob
-      utils.runCommand(`mv ${oldFilename} logs-old/${oldFileNameUnique}`);
+      utils.runCommand(WINSTON_LOGGER, `mv ${oldFilename} logs-old/${oldFileNameUnique}`, false);
     });
     
     logger = winston.createLogger({
       level: 'info',
       format: winston.format.json(),
       defaultMeta: { service: 'acserver', environment: utils.getEnvironment() },
-      transports: [
-        //
-        // - Write all logs with level `error` and below to `error.log`
-        // - Write all logs with level `info` and below to `combined.log`
-        //
-        //new winston.transports.File({ filename: 'logs/acservererror.log', level: 'error' }),
-        // new winston.transports.File({ filename: 'logs/acserver.log' }),
-        transport
-      ],
-    });
-
-    logger.log({
-      level: 'info',  
-      codeno: 1,
-      message: 'Logger created successfuly.',
-      date: moment(Date.now()).format('DD/MM/YYYY HH:mm:ss.SSS'),
-      userEmail: null,
-    });
-
-    // If we're not in production then log to the `console` with the format:
-    // `${info.level}: ${info.message} JSON.stringify({ ...rest }) `
-    //
-    // if (!utils.isProduction()) {
-    //   logger.add(new winston.transports.Console({
-    //     format: winston.format.simple(),
-    //   }));
-    //   logger.info(`As environment is ${process.env.NODE_ENV}, adding console output to logger.`);
-    // } 
+      transports: [ transport ],
+    }); 
   }
   
   return logger;

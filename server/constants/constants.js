@@ -15,6 +15,9 @@ exports.PROPERTY_TYPES = {
 };
 
 exports.ANONYMOUS_USER = 'Anonymous User';
+exports.CRONJOB_USER = 'Cron Job';
+exports.WINSTON_LOGGER = 'Winston Logger';
+exports.ADMIN_EMAIL = 'maxipaolucci@gmail.com'
 
 exports.PUSHER_CHANNEL = 'pusher-events-channel';
 
@@ -24,5 +27,3 @@ exports.CRYPTO_CURRENCIES = {
 };
 
 exports.CRYPTO_RATES_SERVER_URL = 'https://api.coincap.io/v2/assets/';
-
-exports.ADMIN_EMAIL = 'maxipaolucci@gmail.com'
