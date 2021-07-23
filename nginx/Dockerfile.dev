@@ -20,7 +20,7 @@ RUN chmod 644 /etc/logrotate.d/nginx
 # add cronjob to run every 2 minutes to check if a rotation is needed (>50k)
 RUN echo "*/2 * * * * /usr/sbin/logrotate /etc/logrotate.d/nginx" >> mycron
 # add cronjob to run every 15 minutes to force a rotation if nothing exceeds the limit above
-RUN echo "*/15 * * * * /usr/sbin/logrotate -f /etc/logrotate.d/nginx" >> mycron
+RUN echo "*/59 * * * * /usr/sbin/logrotate -f /etc/logrotate.d/nginx" >> mycron
 # setup the crons
 RUN crontab mycron
 # removed the created file

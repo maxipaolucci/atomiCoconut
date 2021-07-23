@@ -25,7 +25,7 @@ services:
     # ports: 
     #   - "7777:7777"
     env_file:
-      - .env
+    - .env
     volumes:
     - /app/node_modules
     - ./server:/app
@@ -49,6 +49,8 @@ services:
     build:
       context: ./nginx
       dockerfile: Dockerfile.dev
+    env_file:
+    - .env
     ports:
     - "2222:80"
     volumes:

@@ -64,8 +64,8 @@ cron.schedule("0 8 * * *", () => {
   userController.deleteExpiredInactiveAccounts();
 });
 
-// this job runs every 15 minutes
-cron.schedule("*/15 * * * *", () => {
+// this job runs every $LOG_ROTATION_FRECUENCY minutes
+cron.schedule(`*/${process.env.LOG_ROTATION_FRECUENCY} * * * *`, () => {
   const lastLogFile = utils.getMostRecentFile('logs/');
   
   if (lastLogFile && lastLogFile.file) {

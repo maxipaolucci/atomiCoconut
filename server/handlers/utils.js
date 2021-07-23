@@ -109,8 +109,8 @@ exports.rotateLogs = async(username, file) => {
     const statsObj = fs.statSync(file);
     
     if (statsObj.size == 0) {
-      // file is empty
-      console.log(`${methodTrace} ${getMessage('message', 1066, username, true, true, file)}`);
+      // file is empty. Not adding to logger this line to avoid creating the next log rotation because of this thing. 
+      console.log(`${methodTrace} ${getMessage('message', 1066, username, true, false, file)}`);
       return;
     }
   
