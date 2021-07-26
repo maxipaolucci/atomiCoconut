@@ -43,7 +43,9 @@ const errorCodes = {
   481: 'Error trying to generate a crypto ratio alert for {{param}}/{{param}}',
   432: 'Command "{{param}}" execution failed. Output: {{param}}',
   433: 'child_process.exec({{param}}) failed. Error: {{param}}',
-  434: 'Error reading file {{param}}: {{param}}'
+  434: 'Error reading file {{param}}: {{param}}',
+  435: 'The directory {{param}} is empty.',
+  436: 'Trigger log rotation endpoint failed.'
 };
 
 const messageCodes = {
@@ -114,7 +116,8 @@ const messageCodes = {
   1064: 'Alert crypto ratio notification is off for {{param}}.',
   1065: 'Command {{param}} executed successfully. Output: {{param}}',
   1066: 'Log file {{param}} is empty. Not rotating it.',
-  1067: 'Moving log file {{param}} to {{param}}...'
+  1067: 'Moving log file {{param}} to {{param}}...',
+  1068: 'Log rotation successfully executed.'
 };
 
 // Get Logger instance. Using the logger variable we handle it as a singleton.

@@ -1,5 +1,6 @@
 const { getMessage } = require('../handlers/errorHandlers');
 const { ANONYMOUS_USER, PUSHER_CHANNEL } = require('../constants/constants');
+const utils = require('../handlers/utils');
 
 const errorTrace = 'systemController >';
 
@@ -26,5 +27,38 @@ exports.getClientApiKeys = (req, res) => {
         codeno : 200,
         msg : getMessage('message', 1062, null, false),
         data : keys
+    });
+};
+
+// triggers a log rotation
+exports.triggerLogRotation = async(req, res) => {
+    const methodTrace = `${errorTrace} triggerLogRotation() >`;
+
+    const lastLogFile = utils.getMostRecentFile('logs/');
+    
+    if (!lastLogFile || !lastLogFile.file) {
+        return res.status(400).json({ 
+            status : "error", 
+            codeno : 435,
+            msg : getMessage('error', 435, null, false, false, 'logs/'),
+            data: null
+        }); 
+    }
+
+    let result = await utils.rotateLogs(req.user.email, `logs/${lastLogFile.file}`);
+    if (!result) {
+        return res.status(400).json({ 
+            status : "error", 
+            codeno : 436,
+            msg : getMessage('error', 436, null, false, false),
+            data: null
+        }); 
+    }
+
+    res.json({
+        status : 'success', 
+        codeno : 200,
+        msg : getMessage('message', 1068, null, false, false),
+        data : null
     });
 };

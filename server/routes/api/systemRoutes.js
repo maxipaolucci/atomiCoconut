@@ -14,4 +14,11 @@ router.route('/getClientApiKeys').get(
   systemController.getClientApiKeys
 );
 
+router.route('/triggerLogRotation').get(
+  authController.isLogggedIn, 
+  authHandler.jwtCheck,
+  authHandler.checkDecodedJwtMatchUser,
+  systemController.triggerLogRotation
+);
+
 module.exports = router;
