@@ -11,10 +11,10 @@ const authHandler = require('../handlers/authHandler');
 
 const errorTrace = 'authController >';
 
-const getUserObject = async (email, fieldsToPopulate = {}) => {
+const getUserObject = async (email, fieldsToPopulate = {}, addToLogger = true) => {
     const methodTrace = `${errorTrace} getUserObject() >`;
     
-    console.log(`${methodTrace} ${getMessage('message', 1006, email, true, true, email)}`);
+    console.log(`${methodTrace} ${getMessage('message', 1006, email, true, addToLogger, email)}`);
     let user = null;
     if (Object.keys(fieldsToPopulate).length) {
         user = await User.findOneAndPopulate({ email }, fieldsToPopulate);
@@ -23,7 +23,7 @@ const getUserObject = async (email, fieldsToPopulate = {}) => {
     }
 
     if (!user) {
-        console.log(`${methodTrace} ${getMessage('error', 455, email, true, true, email)}`);
+        console.log(`${methodTrace} ${getMessage('error', 455, email, true, addToLogger, email)}`);
         return null;
     }
 

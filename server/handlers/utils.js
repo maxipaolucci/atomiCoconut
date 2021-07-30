@@ -105,6 +105,7 @@ exports.runCommand = runCommand;
 // Does a manual log rotation of the app logs
 exports.rotateLogs = async(username, file) => {
   const methodTrace = `${errorTrace} rotateLogs(${file}) >`;
+
   try {
     const statsObj = fs.statSync(file);
     
@@ -145,4 +146,27 @@ const orderReccentFiles = (dir) => {
     .filter((file) => fs.lstatSync(path.join(dir, file)).isFile())
     .map((file) => ({ file, mtime: fs.lstatSync(path.join(dir, file)).mtime }))
     .sort((a, b) => b.mtime.getTime() - a.mtime.getTime());
+};
+
+/**
+ * 
+ * @param {string} methodName Checks if a method is configured to not add to logger via env var NOT_LOGGING_METHOD 
+ * @returns {boolean} True to add to the logger, false to not.
+ */
+exports.addToLogger = (methodName) => {
+  const methodTrace = `${errorTrace} addToLogger() >`;
+
+  if (!methodName) {
+    return true;
+  }
+
+  const notLoggingMethods = process.env.NOT_LOGGING_METHODS.split(',');
+
+  if (notLoggingMethods.includes(methodName)) {
+    console.log(`${methodTrace} ${getMessage('message', 1070, ANONYMOUS_USER, true, false, methodName)}`);
+    return false;
+  }
+
+  console.log(`${methodTrace} ${getMessage('message', 1069, ANONYMOUS_USER, true, true, methodName)}`);
+  return true;
 };

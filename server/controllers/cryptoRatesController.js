@@ -4,6 +4,7 @@ const { getUserObject } = require('./authController');
 const { ADMIN_EMAIL, ANONYMOUS_USER, CRYPTO_RATES_SERVER_URL, CRYPTO_CURRENCIES } = require('../constants/constants');
 
 const mail = require('../handlers/mail');
+const utils = require('../handlers/utils');
 const AWSXRay = require('aws-xray-sdk');
 const axios = require('axios');
 
@@ -71,10 +72,10 @@ exports.getTodayRates = async (req, res) => {
  * 
  * @return {*} . An object with the rates for the provided date  
  */
-const getTodayRatesFromWebservice = async (source = CRYPTO_CURRENCIES.BITCOIN, userEmail) => {
+const getTodayRatesFromWebservice = async (source = CRYPTO_CURRENCIES.BITCOIN, userEmail, addToLogger = true) => {
     const methodTrace = `${errorTrace} getTodayRatesFromWebservice() >`;
     
-    console.log(`${methodTrace} ${getMessage('message', 1047, userEmail, true, true, 'Coincap Service API', 'crypto', source)}`); 
+    console.log(`${methodTrace} ${getMessage('message', 1047, userEmail, true, addToLogger, 'Coincap Service API', 'crypto', source)}`); 
     const url = `${CRYPTO_RATES_SERVER_URL}${source}`;
     let response = null;
 
@@ -85,6 +86,7 @@ const getTodayRatesFromWebservice = async (source = CRYPTO_CURRENCIES.BITCOIN, u
             return response.data.data;
         } 
 
+        // will force this error to be added to the logger just to be aware if happen
         throw new Error(getMessage('error', 477, userEmail, true, true, 'Coincap Service API', 'crypto', source))
     } catch(err) {
         console.log(`${methodTrace} ${err.toString()}`);
@@ -121,21 +123,22 @@ const alertCryptoRatio = async(fromCrypto, toCrypto) => {
     let fromCryptoData = null;
     let toCryptoData = null;
     const fromEmail = 'alert@atomicoconut.com';
+    const addToLogger = utils.addToLogger('cryptoRatesController.alertCryptoRatio');
     
     // get user settings
-    const user = await getUserObject(ADMIN_EMAIL, { userSetting: 'true' });
+    const user = await getUserObject(ADMIN_EMAIL, { userSetting: 'true' }, addToLogger);
     
     if (user && user.userSetting.ratioBtcXmrNotification) {
         try {
-            fromCryptoData = await getTodayRatesFromWebservice(fromCrypto, ADMIN_EMAIL);
-            toCryptoData = await getTodayRatesFromWebservice(toCrypto, ADMIN_EMAIL);
+            fromCryptoData = await getTodayRatesFromWebservice(fromCrypto, ADMIN_EMAIL, addToLogger);
+            toCryptoData = await getTodayRatesFromWebservice(toCrypto, ADMIN_EMAIL, addToLogger);
 
             if (fromCryptoData && toCryptoData) {
                 const ratio = fromCryptoData.priceUsd / toCryptoData.priceUsd;
                 const alert = (ratio >= user.userSetting.ratioBtcXmrMax || ratio < user.userSetting.ratioBtcXmrMin ) ? '[URGENT]': '';
                 const toEmail = ADMIN_EMAIL;
                 
-                console.log(`${methodTrace} ${getMessage('message', 1054, fromEmail, true, true, 'Crypto ratio', toEmail)}`); 
+                console.log(`${methodTrace} ${getMessage('message', 1054, fromEmail, true, addToLogger, 'Crypto ratio', toEmail)}`); 
                 mail.send({
                     toEmail,
                     fromEmail,
@@ -146,17 +149,19 @@ const alertCryptoRatio = async(fromCrypto, toCrypto) => {
                     toCyptoPriceUsd : toCryptoData.priceUsd,
                     toCrypto,
                     filename : 'alert-crypto-ratio' //this is going to be the mail template file
-                });
-                console.log(`${methodTrace} ${getMessage('message', 1055, fromEmail, true, true, toEmail)}`);
+                }, addToLogger);
+                console.log(`${methodTrace} ${getMessage('message', 1055, fromEmail, true, addToLogger, toEmail)}`);
             } else {
+                // force errors to be added to the logger just to be aware
                 throw new Error(getMessage('error', 478, fromEmail, true, true, 'Coincap Service API'))
             }
         } catch(err) {
+            // force errors to be added to the logger just to be aware
             console.log(`${methodTrace} ${getMessage('error', 481, fromEmail, true, true, fromCrypto, toCrypto)}`); 
             console.log(`${methodTrace} ${err.toString()}`);
         }
     } else {
-        console.log(`${methodTrace} ${getMessage('message', 1064, fromEmail, true, true, ADMIN_EMAIL)}`);
+        console.log(`${methodTrace} ${getMessage('message', 1064, fromEmail, true, addToLogger, ADMIN_EMAIL)}`);
     }
 };
 exports.alertCryptoRatio = alertCryptoRatio;

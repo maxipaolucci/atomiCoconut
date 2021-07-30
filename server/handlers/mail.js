@@ -76,16 +76,17 @@ const sendSgMail = async (options) => {
   return sgMail.send(mailOptions);
 };
 
-exports.send = async(options) => {
+exports.send = async(options, addToLogger = true) => {
   const methodTrace = `${errorTrace} send() >`;
 
   const fromEmail = options.fromEmail ? options.fromEmail : ANONYMOUS_USER;
 
   if (utils.isProduction()) {
-    console.log(`${methodTrace} ${getMessage('message', 1041, fromEmail, true, true, 'SendGrid')}`);
+    console.log(`${methodTrace} ${getMessage('message', 1041, fromEmail, true, addToLogger, 'SendGrid')}`);
     return sendSgMail(options);
   } else {
-    console.log(`${methodTrace} ${getMessage('message', 1041, fromEmail, true, true, 'Mailtrap')}`);
+    console.log(`${methodTrace} ${getMessage('message', 1041, fromEmail, true, addToLogger, 'Mailtrap')}`);
     return sendMtMail(options);
   }
+  
 }

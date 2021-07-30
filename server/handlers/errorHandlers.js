@@ -117,7 +117,9 @@ const messageCodes = {
   1065: 'Command {{param}} executed successfully. Output: {{param}}',
   1066: 'Log file {{param}} is empty. Not rotating it.',
   1067: 'Moving log file {{param}} to {{param}}...',
-  1068: 'Log rotation successfully executed.'
+  1068: 'Log rotation successfully executed.',
+  1069: '{{param}} will add logs to the logger because is not specified in $NOT_LOGGING_METHODS',
+  1070: '{{param}} won\'t add logs to the logger because is specified in $NOT_LOGGING_METHODS'
 };
 
 // Get Logger instance. Using the logger variable we handle it as a singleton.
