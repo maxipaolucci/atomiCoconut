@@ -144,7 +144,7 @@ const getLoggerInstance = () => {
     });
   
     transport.on('rotate', async (oldFilename, newFilename) => {
-      let newDate = moment(Date.now()).format('DD-MM-YYYY_HH-mm-ss-SSS');
+      let newDate = moment(Date.now()).format('YYYY-MM-DD_HH-mm-ss-SSS');
       let oldFilenameArr = oldFilename.split('/')[1].split('.');
       let oldFileNameUnique = `${oldFilenameArr[0]}-${newDate}.${oldFilenameArr[1]}`; 
       // move oldFilename to a mounted dir to be able to be send to S3 by a cronjob
