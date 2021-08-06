@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # setup cronjob
-echo "*/30 * * * * sh /aws/cronjob.sh" >> mycron
+echo "*/${S3_SYNC_FRECUENCY_MIN} * * * * sh /aws/scripts/cronjob.sh" >> mycron
 crontab mycron
 rm mycron
 

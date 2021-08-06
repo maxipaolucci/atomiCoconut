@@ -10,4 +10,4 @@ services:
     - ~/.aws:/root/.aws:ro # for aws credentials
     - ../elk/logs/server:/aws/s3-logs/server:rw # make server log files imported from S3 accessible to filebeat
     - ../elk/logs/nginx:/aws/s3-logs/nginx:rw # make nginx log files imported from S3 accessible to filebeat
-    - ./init:/aws/init:ro
+    - ./scripts:/aws/scripts:ro

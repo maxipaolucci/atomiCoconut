@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # setup crontab service
-sh /aws/init/setup.sh
+sh /aws/scripts/setup.sh
 
 # setup a dummy text file to tail and keep the container running
 echo "Cronjobs container started..." >> /var/log/cronjobs.log
