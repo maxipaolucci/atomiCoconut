@@ -34,5 +34,6 @@ artifacts:
     # archive the only file necessary for elastikbeanstalk to redeploy the new docker images pushed
     - "docker-compose.yml"
     - ".platform/hooks/postdeploy/01-setup-cloudwatch-agent.sh"
+    - ".ebextensions/*"
   discard-paths: no # to keep directory structure
   name: atomiCoconut-build-artifact # this name seems to be completely ignored when codepipeline orchastrates this build
